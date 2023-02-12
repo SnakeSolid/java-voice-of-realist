@@ -46,7 +46,7 @@ public class MessageHandler {
 	public MessageHandler(final MessageSender sender, final DBContext db, final long creatorId) {
 		this.sender = sender;
 		this.db = db;
-		this.users = UsersDAO.from(db.getMap(USERS));
+		this.users = UsersDAO.from(creatorId, db.getMap(USERS));
 		this.chats = new Chats();
 	}
 

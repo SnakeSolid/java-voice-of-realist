@@ -10,9 +10,12 @@ import org.telegram.telegrambots.meta.api.objects.User;
 
 public class UsersDAO {
 
+	private final long creatorId;
+
 	private final Map<Long, UserData> inner;
 
-	public UsersDAO(Map<Long, UserData> inner) {
+	public UsersDAO(final long creatorId, final Map<Long, UserData> inner) {
+		this.creatorId = creatorId;
 		this.inner = inner;
 	}
 
@@ -56,13 +59,13 @@ public class UsersDAO {
 	public boolean isWriter(long userId) {
 		UserData userData = inner.get(userId);
 
-		return userData != null && userData.isWriter();
+		return userData != null && (userId == creatorId || userData.isWriter());
 	}
 
 	public boolean isAdmin(long userId) {
 		UserData userData = inner.get(userId);
 
-		return userData != null && userData.isAdmin();
+		return userData != null && (userId == creatorId || userData.isAdmin());
 	}
 
 	public List<Long> allReaders() {
@@ -148,8 +151,8 @@ public class UsersDAO {
 		return "UsersDAO [inner=" + inner + "]";
 	}
 
-	public static UsersDAO from(final Map<Long, UserData> inner) {
-		return new UsersDAO(inner);
+	public static UsersDAO from(final long creatorId, final Map<Long, UserData> inner) {
+		return new UsersDAO(creatorId, inner);
 	}
 
 }
