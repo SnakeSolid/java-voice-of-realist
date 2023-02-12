@@ -3,11 +3,8 @@ package ru.snake.telegram.voiceofrealist;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,7 +142,7 @@ public class MessageHandler {
 
 			if (message.hasText()) {
 				String text = message.getText().toLowerCase();
-				Set<String> userNames = extractUserNames(text);
+				Set<String> userNames = TextUtils.extractUserNames(text);
 
 				users.addAdmins(userNames);
 				chats.remove(chatId);
@@ -159,7 +156,7 @@ public class MessageHandler {
 
 			if (message.hasText()) {
 				String text = message.getText().toLowerCase();
-				Set<String> userNames = extractUserNames(text);
+				Set<String> userNames = TextUtils.extractUserNames(text);
 
 				users.removeAdmins(userNames);
 				chats.remove(chatId);
@@ -173,7 +170,7 @@ public class MessageHandler {
 
 			if (message.hasText()) {
 				String text = message.getText().toLowerCase();
-				Set<String> userNames = extractUserNames(text);
+				Set<String> userNames = TextUtils.extractUserNames(text);
 
 				users.addWriters(userNames);
 				chats.remove(chatId);
@@ -187,7 +184,7 @@ public class MessageHandler {
 
 			if (message.hasText()) {
 				String text = message.getText().toLowerCase();
-				Set<String> userNames = extractUserNames(text);
+				Set<String> userNames = TextUtils.extractUserNames(text);
 
 				users.removeWriters(userNames);
 				chats.remove(chatId);
@@ -202,20 +199,6 @@ public class MessageHandler {
 
 			sendMessage(chatId, "Для работы с ботом используйте следующие команды.", getUserKeyboard(userId));
 		}
-	}
-
-	private Set<String> extractUserNames(String text) {
-		Pattern pattern = Pattern.compile("[a-z0-9]+");
-		Matcher matcher = pattern.matcher(text);
-		Set<String> result = new HashSet<>();
-
-		while (matcher.find()) {
-			String login = matcher.group();
-
-			result.add(login);
-		}
-
-		return result;
 	}
 
 	/**
