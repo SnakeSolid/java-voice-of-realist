@@ -1,7 +1,5 @@
 package ru.snake.telegram.voiceofrealist;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.telegram.abilitybots.api.bot.AbilityBot;
 import org.telegram.abilitybots.api.objects.Ability;
 import org.telegram.abilitybots.api.objects.Locality;
@@ -9,8 +7,6 @@ import org.telegram.abilitybots.api.objects.Privacy;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 
 public class VoiceOfRealist extends AbilityBot {
-
-	private static final Logger LOG = LoggerFactory.getLogger(VoiceOfRealist.class);
 
 	private final MessageHandler messageHandler;
 

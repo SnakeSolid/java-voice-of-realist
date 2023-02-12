@@ -3,10 +3,8 @@ package ru.snake.telegram.voiceofrealist;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,13 +41,13 @@ public class MessageHandler {
 
 	private final UsersDAO users;
 
-	private final Map<Long, ChatState> chatStates;
+	private final Chats chats;
 
 	public MessageHandler(final MessageSender sender, final DBContext db, final long creatorId) {
 		this.sender = sender;
 		this.db = db;
 		this.users = UsersDAO.from(db.getMap(USERS));
-		this.chatStates = new HashMap<>();
+		this.chats = new Chats();
 	}
 
 	public void replyToDefault(MessageContext context) {
@@ -112,25 +110,24 @@ public class MessageHandler {
 			default:
 				sendMessage(chatId, "Некорректные данные в обратном вызове: " + data);
 			}
-		} else if (update.hasMessage() && isPublishMessage(chatId)) {
+		} else if (update.hasMessage() && chats.isPublishMessage(chatId)) {
 			Message message = update.getMessage();
 			boolean isSuccess = false;
 
 			if (message.hasText()) {
 				String text = message.getText();
-				chatStates.get(chatId).setText(text);
+				chats.setText(chatId, text);
 
 				isSuccess = true;
 			} else if (message.hasPhoto()) {
 				String caption = message.getCaption();
 				String photoId = downloadPhoto(message.getPhoto());
-				chatStates.get(chatId).setCaption(caption);
-				chatStates.get(chatId).setPhotoId(photoId);
+				chats.setPhoto(chatId, caption, photoId);
 
 				isSuccess = true;
 			} else if (message.hasVoice()) {
 				String voiceId = message.getVoice().getFileId();
-				chatStates.get(chatId).setVoiceId(voiceId);
+				chats.setVoice(chatId, voiceId);
 
 				isSuccess = true;
 			}
@@ -143,7 +140,7 @@ public class MessageHandler {
 					"Ошибка, неподдерживаемый тип сообщения. Используйте только текст, фотографии или голос."
 				);
 			}
-		} else if (update.hasMessage() && isAllowAdmins(chatId)) {
+		} else if (update.hasMessage() && chats.isAllowAdmins(chatId)) {
 			Message message = update.getMessage();
 
 			if (message.hasText()) {
@@ -151,13 +148,13 @@ public class MessageHandler {
 				Set<String> userNames = extractUserNames(text);
 
 				users.addAdmins(userNames);
-				chatStates.remove(chatId);
+				chats.remove(chatId);
 
 				sendMessage(chatId, "Список администраторов успешно обновлен.");
 			} else {
 				sendMessage(chatId, "Сообщение должно содержать только текст.");
 			}
-		} else if (update.hasMessage() && isDenyAdmins(chatId)) {
+		} else if (update.hasMessage() && chats.isDenyAdmins(chatId)) {
 			Message message = update.getMessage();
 
 			if (message.hasText()) {
@@ -165,13 +162,13 @@ public class MessageHandler {
 				Set<String> userNames = extractUserNames(text);
 
 				users.removeAdmins(userNames);
-				chatStates.remove(chatId);
+				chats.remove(chatId);
 
 				sendMessage(chatId, "Список администраторов успешно обновлен.");
 			} else {
 				sendMessage(chatId, "Сообщение должно содержать только текст.");
 			}
-		} else if (update.hasMessage() && isAllowWrite(chatId)) {
+		} else if (update.hasMessage() && chats.isAllowWrite(chatId)) {
 			Message message = update.getMessage();
 
 			if (message.hasText()) {
@@ -179,13 +176,13 @@ public class MessageHandler {
 				Set<String> userNames = extractUserNames(text);
 
 				users.addWriters(userNames);
-				chatStates.remove(chatId);
+				chats.remove(chatId);
 
 				sendMessage(chatId, "Список писателей успешно обновлен.");
 			} else {
 				sendMessage(chatId, "Сообщение должно содержать только текст.");
 			}
-		} else if (update.hasMessage() && isDenyWrite(chatId)) {
+		} else if (update.hasMessage() && chats.isDenyWrite(chatId)) {
 			Message message = update.getMessage();
 
 			if (message.hasText()) {
@@ -193,7 +190,7 @@ public class MessageHandler {
 				Set<String> userNames = extractUserNames(text);
 
 				users.removeWriters(userNames);
-				chatStates.remove(chatId);
+				chats.remove(chatId);
 
 				sendMessage(chatId, "Список писателей успешно обновлен.");
 			} else {
@@ -242,43 +239,6 @@ public class MessageHandler {
 		}
 
 		return largestPhoto.getFileId();
-	}
-
-	private boolean isDenyWrite(long chatId) {
-		ChatState state = chatStates.get(chatId);
-
-		return state != null && state.isDenyWrite();
-	}
-
-	private boolean isAllowWrite(long chatId) {
-		ChatState state = chatStates.get(chatId);
-
-		return state != null && state.isAllowWrite();
-	}
-
-	private boolean isDenyAdmins(long chatId) {
-		ChatState state = chatStates.get(chatId);
-
-		return state != null && state.isDenyAdmins();
-	}
-
-	private boolean isAllowAdmins(long chatId) {
-		ChatState state = chatStates.get(chatId);
-
-		return state != null && state.isAllowAdmins();
-	}
-
-	/**
-	 * Check that chat in waiting publication state.
-	 *
-	 * @param chatId
-	 *            chat identifier
-	 * @return true if chat exists and in waiting message state
-	 */
-	private boolean isPublishMessage(long chatId) {
-		ChatState state = chatStates.get(chatId);
-
-		return state != null && state.isPublishMessage();
 	}
 
 	public void replyToStart(MessageContext context) {
@@ -334,7 +294,7 @@ public class MessageHandler {
 	public void replyToPublish(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
 			if (users.isWriter(userId)) {
-				chatStates.put(chatId, ChatState.publishMessage());
+				chats.put(chatId, ChatState.publishMessage());
 
 				sendMessage(
 					chatId,
@@ -351,7 +311,7 @@ public class MessageHandler {
 
 	public void replyToWritersRemove(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
-			chatStates.put(chatId, ChatState.denyWrite());
+			chats.put(chatId, ChatState.denyWrite());
 
 			sendMessage(
 				chatId,
@@ -362,7 +322,7 @@ public class MessageHandler {
 
 	public void replyToWritersAdd(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
-			chatStates.put(chatId, ChatState.allowWrite());
+			chats.put(chatId, ChatState.allowWrite());
 
 			sendMessage(
 				chatId,
@@ -373,7 +333,7 @@ public class MessageHandler {
 
 	public void replyToAdminsRemove(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
-			chatStates.put(chatId, ChatState.denyAdmin());
+			chats.put(chatId, ChatState.denyAdmin());
 
 			sendMessage(
 				chatId,
@@ -384,7 +344,7 @@ public class MessageHandler {
 
 	public void replyToAdminsAdd(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
-			chatStates.put(chatId, ChatState.allowAdmin());
+			chats.put(chatId, ChatState.allowAdmin());
 
 			sendMessage(
 				chatId,
@@ -425,7 +385,7 @@ public class MessageHandler {
 
 	public void replyToSend(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
-			ChatState state = chatStates.get(chatId);
+			ChatState state = chats.get(chatId);
 
 			if (state != null) {
 				List<Long> readers = users.allReaders();
@@ -445,13 +405,13 @@ public class MessageHandler {
 				sendMessage(chatId, "Сообщение отправлено");
 			}
 
-			chatStates.remove(chatId);
+			chats.remove(chatId);
 		});
 	}
 
 	public void replyToView(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
-			ChatState state = chatStates.get(chatId);
+			ChatState state = chats.get(chatId);
 
 			if (state != null) {
 				String text = state.getText();
@@ -474,7 +434,7 @@ public class MessageHandler {
 
 	public void replyToDelete(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
-			chatStates.remove(chatId);
+			chats.remove(chatId);
 
 			sendMessage(chatId, "Сообщение удалено.", getUserKeyboard(userId));
 		});
@@ -631,8 +591,7 @@ public class MessageHandler {
 
 	@Override
 	public String toString() {
-		return "MessageHandler [sender=" + sender + ", db=" + db + ", users=" + users + ", chatStates=" + chatStates
-				+ "]";
+		return "MessageHandler [sender=" + sender + ", db=" + db + ", users=" + users + ", chats=" + chats + "]";
 	}
 
 }

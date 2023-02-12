@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.apache.commons.cli.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
@@ -16,23 +17,15 @@ public class Main {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Main.class);
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws ParseException {
 		LOG.info("Read settings...");
 
-		Properties settings = new Properties();
-
-		try (InputStream stream = new FileInputStream("setttings.properties")) {
-			settings.load(stream);
-		} catch (IOException e) {
-			LOG.error("Failed to read settings", e);
-
-			return;
-		}
-
+		Settings settings = Settings.from(args);
+		Properties properties = loadProperties(settings);
 		DefaultBotOptions options = new DefaultBotOptions();
-		long creator = Long.parseLong(settings.getProperty("creator"));
-		String token = settings.getProperty("token");
-		String userName = settings.getProperty("user_name");
+		long creator = Long.parseLong(properties.getProperty("creator"));
+		String token = properties.getProperty("token");
+		String userName = properties.getProperty("user_name");
 		VoiceOfRealist bot = new VoiceOfRealist(creator, token, userName, options);
 
 		LOG.info("Starting...");
@@ -43,6 +36,20 @@ public class Main {
 		} catch (TelegramApiException e) {
 			LOG.error("Failed to start bot", e);
 		}
+	}
+
+	private static Properties loadProperties(Settings settings) {
+		Properties properties = new Properties();
+
+		try (InputStream stream = new FileInputStream(settings.getConfig())) {
+			properties.load(stream);
+		} catch (IOException e) {
+			LOG.error("Failed to read settings", e);
+
+			throw new RuntimeException("Failed to read settings", e);
+		}
+
+		return properties;
 	}
 
 }
