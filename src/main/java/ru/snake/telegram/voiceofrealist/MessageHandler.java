@@ -402,7 +402,7 @@ public class MessageHandler {
 					readers.forEach(readerChatId -> sendVoice(readerChatId, voiceId, getSendViewCancel()));
 				}
 
-				sendMessage(chatId, "Сообщение отправлено");
+				sendMessage(chatId, "Сообщение отправлено", getUserKeyboard(userId));
 			}
 
 			chats.remove(chatId);
