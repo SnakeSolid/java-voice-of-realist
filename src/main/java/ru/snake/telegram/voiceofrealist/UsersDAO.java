@@ -1,10 +1,10 @@
 package ru.snake.telegram.voiceofrealist;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import org.telegram.telegrambots.meta.api.objects.User;
 
@@ -133,12 +133,40 @@ public class UsersDAO {
 	}
 
 	public Set<String> getUserNames() {
-		Set<String> result = new HashSet<>();
+		Set<String> result = new TreeSet<>();
 
 		for (UserData userData : inner.values()) {
 			String userName = userData.getUserName();
 
 			if (userName != null) {
+				result.add(userName);
+			}
+		}
+
+		return result;
+	}
+
+	public Set<String> getWriters() {
+		Set<String> result = new TreeSet<>();
+
+		for (UserData userData : inner.values()) {
+			String userName = userData.getUserName();
+
+			if (userName != null && userData.isWriter()) {
+				result.add(userName);
+			}
+		}
+
+		return result;
+	}
+
+	public Set<String> getAdmins() {
+		Set<String> result = new TreeSet<>();
+
+		for (UserData userData : inner.values()) {
+			String userName = userData.getUserName();
+
+			if (userName != null && userData.isAdmin()) {
 				result.add(userName);
 			}
 		}

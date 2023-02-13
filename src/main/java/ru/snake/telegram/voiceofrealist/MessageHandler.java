@@ -68,8 +68,16 @@ public class MessageHandler {
 				replyToStatus(context);
 				break;
 
-			case Constants.USER_LIST:
-				replyToUserList(context);
+			case Constants.LIST_USERS:
+				replyToListUsers(context);
+				break;
+
+			case Constants.LIST_WRITERS:
+				replyToListWriters(context);
+				break;
+
+			case Constants.LIST_ADMINS:
+				replyToListAdmins(context);
 				break;
 
 			case Constants.ADMINS_ADD:
@@ -228,7 +236,11 @@ public class MessageHandler {
 		withUser(context, (user, userId, chatId) -> {
 			users.ensureUser(user, chatId);
 
-			sendMessage(chatId, "Добро пожаловать в бот уведомлений. Вам доступны следующие действия:");
+			sendMessage(
+				chatId,
+				"Добро пожаловать в бот уведомлений. Вам доступны следующие действия:",
+				getUserKeyboard(userId)
+			);
 		});
 	}
 
@@ -276,24 +288,32 @@ public class MessageHandler {
 
 	public void replyToPublish(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
-			if (users.isWriter(userId)) {
-				chats.put(chatId, ChatState.publishMessage());
-
-				sendMessage(
-					chatId,
-					"Следующим сообщением напишите текст публикации, который будет отправлени всем подписанным пользователям. Поддерживаются следующие типы сообщений: текст, изображения и голос."
-				);
-			} else {
+			if (!users.isWriter(userId)) {
 				sendMessage(
 					chatId,
 					"К сожалению, вы не можете писать публикации. Свяжитесь с администратором, чтобы получить такую возможность."
 				);
+
+				return;
 			}
+
+			chats.put(chatId, ChatState.publishMessage());
+
+			sendMessage(
+				chatId,
+				"Следующим сообщением напишите текст публикации, который будет отправлени всем подписанным пользователям. Поддерживаются следующие типы сообщений: текст, изображения и голос."
+			);
 		});
 	}
 
 	public void replyToWritersRemove(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
+			if (!users.isAdmin(userId)) {
+				sendMessage(chatId, "Нужно быть администратором, чтобы выполнить это действие.");
+
+				return;
+			}
+
 			chats.put(chatId, ChatState.denyWrite());
 
 			sendMessage(
@@ -305,6 +325,12 @@ public class MessageHandler {
 
 	public void replyToWritersAdd(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
+			if (!users.isAdmin(userId)) {
+				sendMessage(chatId, "Нужно быть администратором, чтобы выполнить это действие.");
+
+				return;
+			}
+
 			chats.put(chatId, ChatState.allowWrite());
 
 			sendMessage(
@@ -316,6 +342,12 @@ public class MessageHandler {
 
 	public void replyToAdminsRemove(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
+			if (!users.isAdmin(userId)) {
+				sendMessage(chatId, "Нужно быть администратором, чтобы выполнить это действие.");
+
+				return;
+			}
+
 			chats.put(chatId, ChatState.denyAdmin());
 
 			sendMessage(
@@ -327,6 +359,12 @@ public class MessageHandler {
 
 	public void replyToAdminsAdd(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
+			if (!users.isAdmin(userId)) {
+				sendMessage(chatId, "Нужно быть администратором, чтобы выполнить это действие.");
+
+				return;
+			}
+
 			chats.put(chatId, ChatState.allowAdmin());
 
 			sendMessage(
@@ -336,7 +374,67 @@ public class MessageHandler {
 		});
 	}
 
-	public void replyToUserList(MessageContext context) {
+	public void replyToListAdmins(MessageContext context) {
+		withUser(context, (user, userId, chatId) -> {
+			if (!users.isAdmin(userId)) {
+				sendMessage(chatId, "Нужно быть администратором, чтобы выполнить это действие.");
+
+				return;
+			}
+
+			Set<String> userNames = users.getAdmins();
+			StringBuilder builder = new StringBuilder();
+
+			for (String userName : userNames) {
+				if (builder.length() > 0) {
+					builder.append(", ");
+				}
+
+				builder.append(userName);
+
+				if (builder.length() > 200) {
+					sendMessage(chatId, builder.toString());
+					builder.setLength(0);
+				}
+			}
+
+			if (builder.length() > 0) {
+				sendMessage(chatId, builder.toString());
+			}
+		});
+	}
+
+	public void replyToListWriters(MessageContext context) {
+		withUser(context, (user, userId, chatId) -> {
+			if (!users.isAdmin(userId)) {
+				sendMessage(chatId, "Нужно быть администратором, чтобы выполнить это действие.");
+
+				return;
+			}
+
+			Set<String> userNames = users.getWriters();
+			StringBuilder builder = new StringBuilder();
+
+			for (String userName : userNames) {
+				if (builder.length() > 0) {
+					builder.append(", ");
+				}
+
+				builder.append(userName);
+
+				if (builder.length() > 200) {
+					sendMessage(chatId, builder.toString());
+					builder.setLength(0);
+				}
+			}
+
+			if (builder.length() > 0) {
+				sendMessage(chatId, builder.toString());
+			}
+		});
+	}
+
+	public void replyToListUsers(MessageContext context) {
 		withUser(context, (user, userId, chatId) -> {
 			if (!users.isAdmin(userId)) {
 				sendMessage(chatId, "Нужно быть администратором, чтобы выполнить это действие.");
@@ -443,7 +541,9 @@ public class MessageHandler {
 		if (users.isAdmin(userId)) {
 			rows.add(
 				Arrays.asList(
-					InlineKeyboardButton.builder().text("Все пользователи").callbackData(Constants.USER_LIST).build()
+					InlineKeyboardButton.builder().text("Все пользователи").callbackData(Constants.LIST_USERS).build(),
+					InlineKeyboardButton.builder().text("Писатели").callbackData(Constants.LIST_USERS).build(),
+					InlineKeyboardButton.builder().text("Администраторы").callbackData(Constants.LIST_USERS).build()
 				)
 			);
 			rows.add(

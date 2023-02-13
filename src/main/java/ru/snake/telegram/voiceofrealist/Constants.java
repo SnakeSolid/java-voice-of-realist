@@ -8,7 +8,11 @@ public class Constants {
 
 	public static final String STATE = "state";
 
-	public static final String USER_LIST = "user_list";
+	public static final String LIST_USERS = "list_user";
+
+	public static final String LIST_WRITERS = "list_writers";
+
+	public static final String LIST_ADMINS = "list_admins";
 
 	public static final String ADMINS_ADD = "admins_add";
 
