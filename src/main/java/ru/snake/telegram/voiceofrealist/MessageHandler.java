@@ -1,8 +1,5 @@
 package ru.snake.telegram.voiceofrealist;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -20,9 +17,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 public class MessageHandler {
@@ -138,7 +133,7 @@ public class MessageHandler {
 			}
 
 			if (isSuccess) {
-				sendMessage(chatId, "Сообщение сохранено.", getSendViewCancel());
+				sendMessage(chatId, "Сообщение сохранено.", KeyboardFactory.sendViewCancel());
 			} else {
 				sendMessage(
 					chatId,
@@ -205,7 +200,8 @@ public class MessageHandler {
 			User user = context.user();
 			Long userId = user.getId();
 
-			sendMessage(chatId, "Для работы с ботом используйте следующие команды.", getUserKeyboard(userId));
+			ReplyKeyboard keyboard = KeyboardFactory.userKeyboard(users.isAdmin(userId), users.isWriter(userId));
+			sendMessage(chatId, "Для работы с ботом используйте следующие команды.", keyboard);
 		}
 	}
 
@@ -236,11 +232,8 @@ public class MessageHandler {
 		withUser(context, (user, userId, chatId) -> {
 			users.ensureUser(user, chatId);
 
-			sendMessage(
-				chatId,
-				"Добро пожаловать в бот уведомлений. Вам доступны следующие действия:",
-				getUserKeyboard(userId)
-			);
+			ReplyKeyboard keyboard = KeyboardFactory.userKeyboard(users.isAdmin(userId), users.isWriter(userId));
+			sendMessage(chatId, "Добро пожаловать в бот уведомлений. Вам доступны следующие действия:", keyboard);
 		});
 	}
 
@@ -282,7 +275,9 @@ public class MessageHandler {
 				builder.append("Вы можете управлять списком писателей и администраторов бота.\n");
 			}
 
-			sendMessage(chatId, builder.toString().stripTrailing(), getUserKeyboard(userId));
+			ReplyKeyboard keyboard = KeyboardFactory.userKeyboard(users.isAdmin(userId), users.isWriter(userId));
+
+			sendMessage(chatId, builder.toString().stripTrailing(), keyboard);
 		});
 	}
 
@@ -480,10 +475,11 @@ public class MessageHandler {
 				} else if (caption != null || photoId != null) {
 					readers.forEach(readerChatId -> sendPhoto(readerChatId, caption, photoId));
 				} else if (voiceId != null) {
-					readers.forEach(readerChatId -> sendVoice(readerChatId, voiceId, getSendViewCancel()));
+					readers.forEach(readerChatId -> sendVoice(readerChatId, voiceId, KeyboardFactory.sendViewCancel()));
 				}
 
-				sendMessage(chatId, "Сообщение отправлено", getUserKeyboard(userId));
+				ReplyKeyboard keyboard = KeyboardFactory.userKeyboard(users.isAdmin(userId), users.isWriter(userId));
+				sendMessage(chatId, "Сообщение отправлено", keyboard);
 			}
 
 			chats.remove(chatId);
@@ -501,13 +497,13 @@ public class MessageHandler {
 				String voiceId = state.getVoiceId();
 
 				if (text != null) {
-					sendMessage(chatId, text, getSendViewCancel());
+					sendMessage(chatId, text, KeyboardFactory.sendViewCancel());
 				} else if (photoId != null) {
-					sendPhoto(chatId, caption, photoId, getSendViewCancel());
+					sendPhoto(chatId, caption, photoId, KeyboardFactory.sendViewCancel());
 				} else if (voiceId != null) {
-					sendVoice(chatId, voiceId, getSendViewCancel());
+					sendVoice(chatId, voiceId, KeyboardFactory.sendViewCancel());
 				} else {
-					sendMessage(chatId, "<Сообщение отсутствует>", getSendViewCancel());
+					sendMessage(chatId, "<Сообщение отсутствует>", KeyboardFactory.sendViewCancel());
 				}
 			}
 		});
@@ -517,88 +513,9 @@ public class MessageHandler {
 		withUser(context, (user, userId, chatId) -> {
 			chats.remove(chatId);
 
-			sendMessage(chatId, "Сообщение удалено.", getUserKeyboard(userId));
+			ReplyKeyboard keyboard = KeyboardFactory.userKeyboard(users.isAdmin(userId), users.isWriter(userId));
+			sendMessage(chatId, "Сообщение удалено.", keyboard);
 		});
-	}
-
-	/**
-	 * Creates in-line keyboard for given user according its rights.
-	 *
-	 * @param userId
-	 *            user identifier
-	 * @return reply keyboard
-	 */
-	private ReplyKeyboard getUserKeyboard(long userId) {
-		Collection<List<InlineKeyboardButton>> rows = new ArrayList<>();
-		rows.add(
-			Arrays.asList(
-				InlineKeyboardButton.builder().text("Подписаться").callbackData(Constants.SUBSCRIBE).build(),
-				InlineKeyboardButton.builder().text("Отписаться").callbackData(Constants.UNSUBSCRIBE).build(),
-				InlineKeyboardButton.builder().text("Статус").callbackData(Constants.STATE).build()
-			)
-		);
-
-		if (users.isAdmin(userId)) {
-			rows.add(
-				Arrays.asList(
-					InlineKeyboardButton.builder().text("Все пользователи").callbackData(Constants.LIST_USERS).build(),
-					InlineKeyboardButton.builder().text("Писатели").callbackData(Constants.LIST_USERS).build(),
-					InlineKeyboardButton.builder().text("Администраторы").callbackData(Constants.LIST_USERS).build()
-				)
-			);
-			rows.add(
-				Arrays.asList(
-					InlineKeyboardButton.builder()
-						.text("Добавить администратора")
-						.callbackData(Constants.ADMINS_ADD)
-						.build(),
-					InlineKeyboardButton.builder()
-						.text("Исключить администратора")
-						.callbackData(Constants.ADMINS_REMOVE)
-						.build()
-				)
-			);
-			rows.add(
-				Arrays.asList(
-					InlineKeyboardButton.builder().text("Добавить авторов").callbackData(Constants.WRITERS_ADD).build(),
-					InlineKeyboardButton.builder()
-						.text("Исключить авторов")
-						.callbackData(Constants.WRITERS_REMOVE)
-						.build()
-				)
-			);
-		}
-
-		if (users.isWriter(userId)) {
-			rows.add(
-				Arrays.asList(
-					InlineKeyboardButton.builder()
-						.text("Опубликовать сообщение")
-						.callbackData(Constants.PUBLISH)
-						.build()
-				)
-			);
-		}
-
-		return InlineKeyboardMarkup.builder().keyboard(rows).build();
-	}
-
-	/**
-	 * Creates publication keyboard with send, view and delete buttons.
-	 *
-	 * @return in-line keyboard
-	 */
-	private ReplyKeyboard getSendViewCancel() {
-		Collection<List<InlineKeyboardButton>> rows = new ArrayList<>();
-		rows.add(
-			Arrays.asList(
-				InlineKeyboardButton.builder().text("Оптравить").callbackData(Constants.SEND).build(),
-				InlineKeyboardButton.builder().text("Посмотреть").callbackData(Constants.VIEW).build(),
-				InlineKeyboardButton.builder().text("Удалить").callbackData(Constants.DELETE).build()
-			)
-		);
-
-		return InlineKeyboardMarkup.builder().keyboard(rows).build();
 	}
 
 	private void sendVoice(long chatId, final String audioId, final ReplyKeyboard keyboardRows) {

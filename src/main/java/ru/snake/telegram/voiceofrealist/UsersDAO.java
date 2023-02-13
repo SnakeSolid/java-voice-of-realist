@@ -28,7 +28,7 @@ public class UsersDAO {
 		inner.put(userId, userData);
 	}
 
-	public void subscribeUser(long userId) {
+	public synchronized void subscribeUser(long userId) {
 		UserData userData = inner.get(userId);
 
 		if (userData != null) {
@@ -37,7 +37,7 @@ public class UsersDAO {
 		}
 	}
 
-	public void unsubscribeUser(long userId) {
+	public synchronized void unsubscribeUser(long userId) {
 		UserData userData = inner.get(userId);
 
 		if (userData != null) {
@@ -46,29 +46,29 @@ public class UsersDAO {
 		}
 	}
 
-	public boolean isValidUser(long userId) {
+	public synchronized boolean isValidUser(long userId) {
 		return inner.containsKey(userId);
 	}
 
-	public boolean isReader(long userId) {
+	public synchronized boolean isReader(long userId) {
 		UserData userData = inner.get(userId);
 
 		return userData != null && userData.isReader();
 	}
 
-	public boolean isWriter(long userId) {
+	public synchronized boolean isWriter(long userId) {
 		UserData userData = inner.get(userId);
 
 		return userData != null && (userId == creatorId || userData.isWriter());
 	}
 
-	public boolean isAdmin(long userId) {
+	public synchronized boolean isAdmin(long userId) {
 		UserData userData = inner.get(userId);
 
 		return userData != null && (userId == creatorId || userData.isAdmin());
 	}
 
-	public List<Long> allReaders() {
+	public synchronized List<Long> allReaders() {
 		List<Long> result = new ArrayList<>();
 
 		for (UserData userData : inner.values()) {
@@ -80,7 +80,7 @@ public class UsersDAO {
 		return result;
 	}
 
-	public void addAdmins(Set<String> userNames) {
+	public synchronized void addAdmins(Set<String> userNames) {
 		for (UserData userData : inner.values()) {
 			String userName = userData.getUserName();
 
@@ -93,7 +93,7 @@ public class UsersDAO {
 		}
 	}
 
-	public void removeAdmins(Set<String> userNames) {
+	public synchronized void removeAdmins(Set<String> userNames) {
 		for (UserData userData : inner.values()) {
 			String userName = userData.getUserName();
 
@@ -106,7 +106,7 @@ public class UsersDAO {
 		}
 	}
 
-	public void addWriters(Set<String> userNames) {
+	public synchronized void addWriters(Set<String> userNames) {
 		for (UserData userData : inner.values()) {
 			String userName = userData.getUserName();
 
@@ -119,7 +119,7 @@ public class UsersDAO {
 		}
 	}
 
-	public void removeWriters(Set<String> userNames) {
+	public synchronized void removeWriters(Set<String> userNames) {
 		for (UserData userData : inner.values()) {
 			String userName = userData.getUserName();
 
@@ -132,7 +132,7 @@ public class UsersDAO {
 		}
 	}
 
-	public Set<String> getUserNames() {
+	public synchronized Set<String> getUserNames() {
 		Set<String> result = new TreeSet<>();
 
 		for (UserData userData : inner.values()) {
@@ -146,7 +146,7 @@ public class UsersDAO {
 		return result;
 	}
 
-	public Set<String> getWriters() {
+	public synchronized Set<String> getWriters() {
 		Set<String> result = new TreeSet<>();
 
 		for (UserData userData : inner.values()) {
@@ -160,7 +160,7 @@ public class UsersDAO {
 		return result;
 	}
 
-	public Set<String> getAdmins() {
+	public synchronized Set<String> getAdmins() {
 		Set<String> result = new TreeSet<>();
 
 		for (UserData userData : inner.values()) {
