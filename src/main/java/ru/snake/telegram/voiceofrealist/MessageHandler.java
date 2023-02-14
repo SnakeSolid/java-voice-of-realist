@@ -120,7 +120,7 @@ public class MessageHandler {
 			isSuccess = true;
 		} else if (message.hasPhoto()) {
 			String caption = message.getCaption();
-			String photoId = downloadPhoto(message.getPhoto());
+			String photoId = selectPhoto(message.getPhoto());
 			chats.setPhoto(chatId, caption, photoId);
 
 			isSuccess = true;
@@ -208,13 +208,13 @@ public class MessageHandler {
 	}
 
 	/**
-	 * Download photo and return its internal identifier.
+	 * Select largest photo and return its internal identifier.
 	 *
 	 * @param photos
 	 *            photo list
 	 * @return photo identifier
 	 */
-	private String downloadPhoto(final List<PhotoSize> photos) {
+	private String selectPhoto(final List<PhotoSize> photos) {
 		PhotoSize largestPhoto = null;
 
 		for (PhotoSize photo : photos) {
