@@ -14,6 +14,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 
+import ru.snake.telegram.voiceofrealist.chat.ChatState;
+import ru.snake.telegram.voiceofrealist.chat.Chats;
+import ru.snake.telegram.voiceofrealist.data.UsersDAO;
+
 public class MessageHandler {
 
 	private static final int MESSAGE_LENGTH_THRESHOLD = 200;

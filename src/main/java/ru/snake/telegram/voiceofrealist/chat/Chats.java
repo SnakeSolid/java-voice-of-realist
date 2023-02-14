@@ -1,4 +1,4 @@
-package ru.snake.telegram.voiceofrealist;
+package ru.snake.telegram.voiceofrealist.chat;
 
 import java.util.HashMap;
 import java.util.Map;

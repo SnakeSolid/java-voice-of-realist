@@ -1,4 +1,4 @@
-package ru.snake.telegram.voiceofrealist;
+package ru.snake.telegram.voiceofrealist.data;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package ru.snake.telegram.voiceofrealist;
+package ru.snake.telegram.voiceofrealist.chat;
 
 public class ChatState {
 
