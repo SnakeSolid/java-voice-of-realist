@@ -33,6 +33,15 @@ public class VoiceOfRealist extends AbilityBot {
 			.build();
 	}
 
+	public Ability replyToStart() {
+		return Ability.builder()
+			.name("start")
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToStart)
+			.build();
+	}
+
 	public Ability replyToSubscribe() {
 		return Ability.builder()
 			.name(Constants.SUBSCRIBE)
