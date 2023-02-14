@@ -33,18 +33,9 @@ public class VoiceOfRealist extends AbilityBot {
 			.build();
 	}
 
-	public Ability replyToStart() {
-		return Ability.builder()
-			.name("start")
-			.locality(Locality.USER)
-			.privacy(Privacy.PUBLIC)
-			.action(messageHandler::replyToStart)
-			.build();
-	}
-
 	public Ability replyToSubscribe() {
 		return Ability.builder()
-			.name("subscribe")
+			.name(Constants.SUBSCRIBE)
 			.locality(Locality.USER)
 			.privacy(Privacy.PUBLIC)
 			.action(messageHandler::replyToSubscribe)
@@ -53,28 +44,118 @@ public class VoiceOfRealist extends AbilityBot {
 
 	public Ability replyToUnsubscribe() {
 		return Ability.builder()
-			.name("unsubscribe")
+			.name(Constants.UNSUBSCRIBE)
 			.locality(Locality.USER)
 			.privacy(Privacy.PUBLIC)
 			.action(messageHandler::replyToUnsubscribe)
 			.build();
 	}
 
-	public Ability replyToState() {
+	public Ability replyToStatus() {
 		return Ability.builder()
-			.name("state")
+			.name(Constants.STATE)
 			.locality(Locality.USER)
 			.privacy(Privacy.PUBLIC)
 			.action(messageHandler::replyToStatus)
 			.build();
 	}
 
+	public Ability replyToListUsers() {
+		return Ability.builder()
+			.name(Constants.LIST_USERS)
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToListUsers)
+			.build();
+	}
+
+	public Ability replyToListWriters() {
+		return Ability.builder()
+			.name(Constants.LIST_WRITERS)
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToListWriters)
+			.build();
+	}
+
+	public Ability replyToListAdmins() {
+		return Ability.builder()
+			.name(Constants.LIST_ADMINS)
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToListAdmins)
+			.build();
+	}
+
+	public Ability replyToAdminsAdd() {
+		return Ability.builder()
+			.name(Constants.ADMINS_ADD)
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToAdminsAdd)
+			.build();
+	}
+
+	public Ability replyToAdminsRemove() {
+		return Ability.builder()
+			.name(Constants.ADMINS_REMOVE)
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToAdminsRemove)
+			.build();
+	}
+
+	public Ability replyToWritersAdd() {
+		return Ability.builder()
+			.name(Constants.WRITERS_ADD)
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToWritersAdd)
+			.build();
+	}
+
+	public Ability replyToWritersRemove() {
+		return Ability.builder()
+			.name(Constants.WRITERS_REMOVE)
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToWritersRemove)
+			.build();
+	}
+
 	public Ability replyToPublish() {
 		return Ability.builder()
-			.name("publish")
+			.name(Constants.PUBLISH)
 			.locality(Locality.USER)
 			.privacy(Privacy.PUBLIC)
 			.action(messageHandler::replyToPublish)
+			.build();
+	}
+
+	public Ability replyToSend() {
+		return Ability.builder()
+			.name(Constants.SEND)
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToSend)
+			.build();
+	}
+
+	public Ability replyToView() {
+		return Ability.builder()
+			.name(Constants.VIEW)
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToView)
+			.build();
+	}
+
+	public Ability replyToDelete() {
+		return Ability.builder()
+			.name(Constants.DELETE)
+			.locality(Locality.USER)
+			.privacy(Privacy.PUBLIC)
+			.action(messageHandler::replyToDelete)
 			.build();
 	}
 
